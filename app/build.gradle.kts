@@ -71,7 +71,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
+    // Material Icons（基础包，已随 Compose BOM 引入，无需额外声明）
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.4")

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 圆形背景 -->
+    <circle
+        android:cx="54"
+        android:cy="54"
+        android:r="48"
+        android:fillColor="#4F8BF7"/>
+    <!-- 书本形状 -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M30,32 L54,26 L78,32 L78,76 L54,82 L30,76 Z M36,38 L36,70 L54,76 L54,44 Z"/>
+</vector>

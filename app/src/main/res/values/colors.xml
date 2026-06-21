@@ -6,4 +6,6 @@
     <color name="md_secondary">#FFB347</color>
     <color name="md_tertiary">#7ED957</color>
     <color name="md_warning">#FF6F61</color>
+    <!-- material-icons-extended 依赖需要的颜色 -->
+    <color name="md_background_dark">#FF121212</color>
 </resources>
