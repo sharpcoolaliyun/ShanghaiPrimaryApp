@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 书本图标 + 笑脸 -->
+    <path
+        android:pathData="M30,32 L78,32 A6,6 0 0 1 84,38 L84,76 A6,6 0 0 1 78,82 L30,82 A6,6 0 0 1 24,76 L24,38 A6,6 0 0 1 30,32 Z"
+        android:fillColor="#FFFFFF"/>
+    <path
+        android:pathData="M54,32 L54,82"
+        android:strokeColor="#4F8BF7"
+        android:strokeWidth="3"/>
+    <path
+        android:pathData="M48,50 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:fillColor="#FFB347"/>
+    <path
+        android:pathData="M60,50 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:fillColor="#FFB347"/>
+    <path
+        android:pathData="M48,60 q6,6 12,0"
+        android:strokeColor="#FF6F61"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"/>
+</vector>

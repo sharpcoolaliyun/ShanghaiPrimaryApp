@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">上海小学学科游戏</string>
+    <string name="home_title">你好，小朋友！</string>
+    <string name="home_subtitle">今天来玩一玩，答对题目攒小星星</string>
+    <string name="home_stars">我的小星星：%1$s</string>
+    <string name="home_pick">选择一个科目开始游戏</string>
+    <string name="chinese_title">认字小达人</string>
+    <string name="chinese_subtitle">拼音 · 识字 · 古诗</string>
+    <string name="math_title">口算闯关</string>
+    <string name="math_subtitle">10/20以内加减 · 乘法入门</string>
+    <string name="english_title">单词卡片</string>
+    <string name="english_subtitle">看图选词 · 常用单词</string>
+    <string name="general_title">常识问答</string>
+    <string name="general_subtitle">生活 · 安全 · 自然</string>
+    <string name="feedback_correct">太棒了！答对啦</string>
+    <string name="feedback_wrong">再想想看哦~</string>
+    <string name="finished_title">闯关完成</string>
+    <string name="finished_score">得分  %1$d / %2$d</string>
+    <string name="btn_next">下一题</string>
+    <string name="btn_finish">完成</string>
+    <string name="btn_home">回到首页</string>
+    <string name="btn_replay">再玩一次</string>
+</resources>
