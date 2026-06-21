@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.shanghai.primary"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.shanghai.primary"
         minSdk = 26           // 覆盖绝大多数现役安卓机
-        targetSdk = 36        // Android 16
+        targetSdk = 34        // Android 14（GitHub Actions 稳定支持）
         versionCode = 1
         versionName = "1.0"
 

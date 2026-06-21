@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code (preserve executable bit)
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -23,47 +23,48 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # ===== 关键修复：自动修复 gradlew 权限 + jar 完整性 =====
+      # 修复 gradlew 执行权限（Git checkout 在 Linux 上可能丢失）
       - name: Fix gradlew permissions
         run: chmod +x gradlew
 
-      # GitHub checkout 会把 gradle/wrapper/gradle-wrapper.jar 当成文本文件处理，
-      # 这里我们用 git restore + git update-index --chmod=+x 来保留权限
-      - name: Install gradle-wrapper.jar if missing
+      # 确保 gradle-wrapper.jar 完好（防止 Git 破坏二进制文件）
+      - name: Verify gradle-wrapper.jar
         run: |
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ] || [ ! -s gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "Downloading gradle-wrapper.jar ..."
+          if [ ! -s gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "gradle-wrapper.jar missing, re-downloading..."
             mkdir -p gradle/wrapper
             curl -sSL -o gradle/wrapper/gradle-wrapper.jar \
               "https://github.com/gradle/gradle/raw/v8.10.2/gradle/wrapper/gradle-wrapper.jar"
-            ls -la gradle/wrapper/gradle-wrapper.jar
           fi
-          [ -s gradle/wrapper/gradle-wrapper.jar ] || (echo "ERROR: jar missing" && exit 1)
-
-      - name: Verify gradle-wrapper.jar integrity
-        run: |
-          echo "Checking gradle-wrapper.jar ..."
-          file gradle/wrapper/gradle-wrapper.jar
-          unzip -l gradle/wrapper/gradle-wrapper.jar 2>/dev/null | grep -q "GradleWrapperMain.class" \
+          # 验证 jar 内容
+          jar -tf gradle/wrapper/gradle-wrapper.jar 2>/dev/null | grep -q "GradleWrapperMain.class" \
             && echo "OK: GradleWrapperMain present" \
-            || (echo "ERROR: GradleWrapperMain missing" && exit 1)
+            || (echo "ERROR: invalid gradle-wrapper.jar" && exit 1)
 
-      - name: Create local.properties
+      # 安装 Android SDK（手动方式，最可靠）
+      - name: Setup Android SDK
         run: |
-          mkdir -p "$HOME/.android"
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          SDK_ROOT=$HOME/android-sdk
+          mkdir -p $SDK_ROOT/cmdline-tools
+          # 下载命令行工具
+          curl -sSL -o /tmp/cmdline-tools.zip \
+            "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+          unzip -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools
+          mv /tmp/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
+          # 安装必要组件（API 34）
+          yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "platform-tools"
+          # 接受所有许可证
+          yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          # 写入 local.properties
+          echo "sdk.dir=$SDK_ROOT" > local.properties
+          echo "ANDROID_HOME=$SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> $GITHUB_ENV
+          echo "SDK setup done: $SDK_ROOT"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 36
-          build-tools: '36.0.0'
-          components: 'platform-tools,platforms;android-36,build-tools;36.0.0'
-
-      - name: Verify gradlew executable
-        run: ls -la gradlew && head -1 gradlew
-
-      - name: Build with Gradle
+      - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Upload APK artifact
@@ -73,3 +74,13 @@ jobs:
           name: app-release-apk
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
+
+      - name: Upload build logs on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: build-logs
+          path: |
+            app/build/reports/
+            app/build/outputs/logs/
+          retention-days: 7
