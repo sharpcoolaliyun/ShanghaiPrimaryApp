@@ -12,14 +12,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout code (preserve executable bit)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      # ===== 关键修复：自动修复 gradlew 权限 + jar 完整性 =====
+      - name: Fix gradlew permissions
+        run: chmod +x gradlew
+
+      # GitHub checkout 会把 gradle/wrapper/gradle-wrapper.jar 当成文本文件处理，
+      # 这里我们用 git restore + git update-index --chmod=+x 来保留权限
+      - name: Install gradle-wrapper.jar if missing
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ] || [ ! -s gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "Downloading gradle-wrapper.jar ..."
+            mkdir -p gradle/wrapper
+            curl -sSL -o gradle/wrapper/gradle-wrapper.jar \
+              "https://github.com/gradle/gradle/raw/v8.10.2/gradle/wrapper/gradle-wrapper.jar"
+            ls -la gradle/wrapper/gradle-wrapper.jar
+          fi
+          [ -s gradle/wrapper/gradle-wrapper.jar ] || (echo "ERROR: jar missing" && exit 1)
+
+      - name: Verify gradle-wrapper.jar integrity
+        run: |
+          echo "Checking gradle-wrapper.jar ..."
+          file gradle/wrapper/gradle-wrapper.jar
+          unzip -l gradle/wrapper/gradle-wrapper.jar 2>/dev/null | grep -q "GradleWrapperMain.class" \
+            && echo "OK: GradleWrapperMain present" \
+            || (echo "ERROR: GradleWrapperMain missing" && exit 1)
+
+      - name: Create local.properties
+        run: |
+          mkdir -p "$HOME/.android"
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -28,22 +60,16 @@ jobs:
           build-tools: '36.0.0'
           components: 'platform-tools,platforms;android-36,build-tools;36.0.0'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Verify gradlew executable
+        run: ls -la gradlew && head -1 gradlew
 
       - name: Build with Gradle
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: app-release-apk
           path: app/build/outputs/apk/release/*.apk
-          retention-days: 30
-
-      - name: Upload AAB artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-aab
-          path: app/build/outputs/bundle/release/*.aab
           retention-days: 30

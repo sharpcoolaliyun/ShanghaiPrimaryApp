@@ -5,6 +5,7 @@ import com.shanghai.primary.data.model.Progress
 import com.shanghai.primary.data.model.Question
 import com.shanghai.primary.data.model.Subject
 import com.shanghai.primary.data.seed.SeedQuestions
+import com.shanghai.primary.data.model.GameType
 import kotlinx.coroutines.flow.Flow
 
 class QuestionRepository(private val db: AppDatabase) {
@@ -18,6 +19,9 @@ class QuestionRepository(private val db: AppDatabase) {
 
     suspend fun nextRound(subject: Subject, grade: Int, size: Int = 10): List<Question> =
         db.questionDao().random(subject, grade, size)
+
+    suspend fun nextFlashCardRound(subject: Subject, grade: Int, size: Int = 10): List<Question> =
+        db.questionDao().randomByType(subject, grade, GameType.FLASHCARD, size)
 }
 
 class ProgressRepository(private val db: AppDatabase) {

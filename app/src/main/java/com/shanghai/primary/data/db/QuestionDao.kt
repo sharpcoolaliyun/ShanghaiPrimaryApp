@@ -16,7 +16,6 @@ interface QuestionDao {
     @Query("SELECT COUNT(*) FROM questions")
     suspend fun totalCount(): Int
 
-    /** 在最早发现的可用年级（<= 目标年级）中随机抽题 */
     @Query(
         """
         SELECT * FROM questions
@@ -25,4 +24,13 @@ interface QuestionDao {
         """
     )
     suspend fun random(subject: Subject, grade: Int, size: Int): List<Question>
+
+    @Query(
+        """
+        SELECT * FROM questions
+        WHERE subject = :subject AND grade <= :grade AND gameType = :gameType
+        ORDER BY RANDOM() LIMIT :size
+        """
+    )
+    suspend fun randomByType(subject: Subject, grade: Int, gameType: String, size: Int): List<Question>
 }

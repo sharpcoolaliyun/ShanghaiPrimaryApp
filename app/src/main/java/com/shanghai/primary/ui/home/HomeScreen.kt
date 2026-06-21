@@ -1,5 +1,9 @@
 package com.shanghai.primary.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,17 +20,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoStories
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -37,7 +51,7 @@ data class SubjectCardConfig(
     val subject: Subject,
     val title: String,
     val subtitle: String,
-    val emoji: String,
+    val iconTint: Color,
     val colors: List<Color>,
     val stars: Int,
     val answered: Int
@@ -115,7 +129,7 @@ fun HomeScreen(
                     subject = Subject.CHINESE,
                     title = "认字小达人",
                     subtitle = "拼音 · 识字 · 古诗",
-                    emoji = "B",
+                    iconTint = Color(0xFFFFF3E0),
                     colors = listOf(Color(0xFFFF9A8B), Color(0xFFFFAD42)),
                     stars = state.starsBySubject[Subject.CHINESE] ?: 0,
                     answered = state.answeredBySubject[Subject.CHINESE] ?: 0
@@ -124,7 +138,7 @@ fun HomeScreen(
                     subject = Subject.MATH,
                     title = "口算闯关",
                     subtitle = "10/20以内加减 · 乘法入门",
-                    emoji = "M",
+                    iconTint = Color(0xFFE8EAF6),
                     colors = listOf(Color(0xFF4F8BF7), Color(0xFF8B5CF6)),
                     stars = state.starsBySubject[Subject.MATH] ?: 0,
                     answered = state.answeredBySubject[Subject.MATH] ?: 0
@@ -133,7 +147,7 @@ fun HomeScreen(
                     subject = Subject.ENGLISH,
                     title = "单词卡片",
                     subtitle = "看图选词 · 常用单词",
-                    emoji = "E",
+                    iconTint = Color(0xFFE0F7FA),
                     colors = listOf(Color(0xFF7ED957), Color(0xFF38BDF8)),
                     stars = state.starsBySubject[Subject.ENGLISH] ?: 0,
                     answered = state.answeredBySubject[Subject.ENGLISH] ?: 0
@@ -142,7 +156,7 @@ fun HomeScreen(
                     subject = Subject.GENERAL,
                     title = "常识问答",
                     subtitle = "生活 · 安全 · 自然",
-                    emoji = "G",
+                    iconTint = Color(0xFFFFF3E0),
                     colors = listOf(Color(0xFFFFB347), Color(0xFFFF6F61)),
                     stars = state.starsBySubject[Subject.GENERAL] ?: 0,
                     answered = state.answeredBySubject[Subject.GENERAL] ?: 0
@@ -150,8 +164,14 @@ fun HomeScreen(
             )
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                items(cards) { card ->
-                    SubjectCard(card) { onSelectSubject(card.subject) }
+                itemsIndexed(cards) { index, card ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it * (index + 1) / 3 }),
+                        exit = fadeOut()
+                    ) {
+                        SubjectCard(card) { onSelectSubject(card.subject) }
+                    }
                 }
             }
         }
@@ -160,12 +180,20 @@ fun HomeScreen(
 
 @Composable
 private fun SubjectCard(cfg: SubjectCardConfig, onClick: () -> Unit) {
+    var pressed by remember { mutableStateOf(false) }
+    val scale by remember(pressed) { mutableStateOf(if (pressed) 0.96f else 1f) }
+
     Surface(
         shape = RoundedCornerShape(28.dp),
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-            .clickable(onClick = onClick)
+            .scale(scale)
+            .clickable(
+                onClick = onClick,
+                onPress = { pressed = true },
+                onRelease = { pressed = false }
+            )
     ) {
         Box(
             Modifier
@@ -174,7 +202,17 @@ private fun SubjectCard(cfg: SubjectCardConfig, onClick: () -> Unit) {
                 .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(cfg.emoji, fontSize = 56.sp)
+                // 科目图标
+                when (cfg.subject) {
+                    Subject.CHINESE ->
+                        Icon(Icons.Filled.AutoStories, contentDescription = null, tint = cfg.iconTint, modifier = Modifier.size(52.dp))
+                    Subject.MATH ->
+                        Icon(Icons.Filled.Calculate, contentDescription = null, tint = cfg.iconTint, modifier = Modifier.size(52.dp))
+                    Subject.ENGLISH ->
+                        Icon(Icons.Filled.Translate, contentDescription = null, tint = cfg.iconTint, modifier = Modifier.size(52.dp))
+                    Subject.GENERAL ->
+                        Icon(Icons.Filled.Lightbulb, contentDescription = null, tint = cfg.iconTint, modifier = Modifier.size(52.dp))
+                }
                 Spacer(Modifier.size(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
@@ -190,9 +228,9 @@ private fun SubjectCard(cfg: SubjectCardConfig, onClick: () -> Unit) {
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Stars: ${cfg.stars}", fontSize = 18.sp, color = Color.White)
+                    Text("★ ${cfg.stars}", fontSize = 18.sp, color = Color.White)
                     Spacer(Modifier.height(4.dp))
-                    Text("Done: ${cfg.answered}", fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
+                    Text("完成: ${cfg.answered}", fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
                 }
             }
         }

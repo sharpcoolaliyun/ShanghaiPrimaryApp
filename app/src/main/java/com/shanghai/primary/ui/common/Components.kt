@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,24 +21,34 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shanghai.primary.R
 import com.shanghai.primary.data.model.Question
+import com.shanghai.primary.sound.SoundManager
 
 enum class ChoiceState { Idle, Selected, Correct, Wrong }
 
 @Composable
-fun ProgressIndicator(current: Int, total: Int, modifier: Modifier = Modifier) {
+fun ProgressIndicator(current: Int, total: Int, stars: Int, modifier: Modifier = Modifier) {
     val ratio = if (total == 0) 0f else current.toFloat() / total
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Row(
@@ -49,11 +60,20 @@ fun ProgressIndicator(current: Int, total: Int, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
-            Text(
-                stringResource(R.string.label_stars, current),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Filled.Star,
+                    contentDescription = null,
+                    tint = Color(0xFFFFD700),
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.size(4.dp))
+                Text(
+                    stringResource(R.string.label_stars, stars),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
         Spacer(Modifier.height(8.dp))
         Surface(
@@ -79,22 +99,64 @@ fun OptionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var pressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.95f else 1f,
+        label = "press"
+    )
+
     val (bg, fg) = when (selected) {
         ChoiceState.Idle     -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onSurface
         ChoiceState.Selected -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.85f) to Color.White
         ChoiceState.Correct  -> MaterialTheme.colorScheme.tertiary to Color.White
         ChoiceState.Wrong    -> MaterialTheme.colorScheme.error.copy(alpha = 0.85f) to Color.White
     }
+
+    val shape = RoundedCornerShape(24.dp)
+
     Surface(
         color = bg,
-        shape = RoundedCornerShape(24.dp),
+        shape = shape,
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 72.dp)
-            .clickable(enabled = selected == ChoiceState.Idle) { onClick() }
+            .scale(scale)
+            .clickable(
+                enabled = selected == ChoiceState.Idle,
+                onClick = onClick,
+                onPress = { pressed = true },
+                onRelease = { pressed = false }
+            )
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            Text(label, color = fg, fontSize = 22.sp)
+        Box(contentAlignment = Alignment.CenterStart, modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // 选项字母
+                val letter = when (label.firstOrNull()) {
+                    in 'A'..'Z' -> label.first().toString()
+                    else -> ""
+                }
+                if (letter.isNotEmpty()) {
+                    Surface(
+                        shape = CircleShape,
+                        color = fg.copy(alpha = 0.15f),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                            Text(letter, color = fg, fontSize = 18.sp)
+                        }
+                    }
+                    Spacer(Modifier.size(12.dp))
+                }
+                Text(label, color = fg, fontSize = 20.sp, modifier = Modifier.weight(1f))
+                // 状态图标
+                when (selected) {
+                    ChoiceState.Correct ->
+                        Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                    ChoiceState.Wrong ->
+                        Icon(Icons.Filled.Cancel, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                    else -> { }
+                }
+            }
         }
     }
 }
@@ -122,6 +184,15 @@ fun FeedbackOverlay(visible: Boolean, correct: Boolean, onNext: () -> Unit, isLa
                                 else MaterialTheme.colorScheme.error
                     )
                     Spacer(Modifier.height(20.dp))
+                    if (correct) {
+                        Icon(
+                            Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = Color(0xFFFFD700),
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Spacer(Modifier.height(12.dp))
+                    }
                     Surface(
                         color = MaterialTheme.colorScheme.primary,
                         shape = CircleShape,

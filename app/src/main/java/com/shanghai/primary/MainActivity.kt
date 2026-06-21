@@ -13,8 +13,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.shanghai.primary.data.model.Subject
+import com.shanghai.primary.ui.game.FlashCardScreen
+import com.shanghai.primary.ui.game.FlashCardViewModel
 import com.shanghai.primary.ui.game.GameScreen
 import com.shanghai.primary.ui.game.GameViewModel
+import com.shanghai.primary.ui.game.DragMatchScreen
+import com.shanghai.primary.ui.game.DragMatchViewModel
+import com.shanghai.primary.ui.game.WordScrambleScreen
+import com.shanghai.primary.ui.game.WordScrambleViewModel
+import com.shanghai.primary.ui.game.TimedChallengeScreen
+import com.shanghai.primary.ui.game.TimedChallengeViewModel
+import com.shanghai.primary.ui.home.GameModeScreen
 import com.shanghai.primary.ui.home.HomeScreen
 import com.shanghai.primary.ui.home.HomeViewModel
 import com.shanghai.primary.ui.theme.AppTheme
@@ -48,20 +58,81 @@ fun AppNavigation(navController: NavHostController) {
             HomeScreen(
                 vm = homeViewModel,
                 onSelectSubject = { subject ->
-                    navController.navigate("game/${subject.name}")
+                    navController.navigate("gamemode/${subject.name}")
                 }
             )
         }
-        composable("game/{subject}") { backStackEntry ->
+        composable("gamemode/{subject}") { backStackEntry ->
             val subjectName = backStackEntry.arguments?.getString("subject") ?: "MATH"
             val subject = Subject.valueOf(subjectName)
-            val gameViewModel: GameViewModel = viewModel(
-                factory = GameViewModelFactory(subject, grade = 1)
-            )
-            GameScreen(
-                vm = gameViewModel,
+            GameModeScreen(
+                subject = subject,
+                onSelectGameMode = { gameType ->
+                    navController.navigate("game/${subject.name}/$gameType")
+                },
                 onBack = { navController.popBackStack() }
             )
+        }
+        composable("game/{subject}/{gameType}") { backStackEntry ->
+            val subjectName = backStackEntry.arguments?.getString("subject") ?: "MATH"
+            val gameType = backStackEntry.arguments?.getString("gameType") ?: "QUIZ"
+            val subject = Subject.valueOf(subjectName)
+            when (gameType) {
+                "QUIZ" -> {
+                    val gameViewModel: GameViewModel = viewModel(
+                        factory = GameViewModelFactory(subject, grade = 1)
+                    )
+                    GameScreen(
+                        vm = gameViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                "FLASHCARD" -> {
+                    val flashCardViewModel: FlashCardViewModel = viewModel(
+                        factory = FlashCardViewModelFactory(subject)
+                    )
+                    FlashCardScreen(
+                        vm = flashCardViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                "DRAG_MATCH" -> {
+                    val dragMatchViewModel: DragMatchViewModel = viewModel(
+                        factory = DragMatchViewModelFactory(subject)
+                    )
+                    DragMatchScreen(
+                        vm = dragMatchViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                "WORD_SCRAMBLE" -> {
+                    val wordScrambleViewModel: WordScrambleViewModel = viewModel(
+                        factory = WordScrambleViewModelFactory(subject)
+                    )
+                    WordScrambleScreen(
+                        vm = wordScrambleViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                "TIMED" -> {
+                    val timedViewModel: TimedChallengeViewModel = viewModel(
+                        factory = TimedChallengeViewModelFactory(subject)
+                    )
+                    TimedChallengeScreen(
+                        vm = timedViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                else -> {
+                    val gameViewModel: GameViewModel = viewModel(
+                        factory = GameViewModelFactory(subject, grade = 1)
+                    )
+                    GameScreen(
+                        vm = gameViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+            }
         }
     }
 }
