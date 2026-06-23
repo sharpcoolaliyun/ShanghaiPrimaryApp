@@ -4,6 +4,7 @@ import android.app.Application
 import com.shanghai.primary.data.db.AppDatabase
 import com.shanghai.primary.data.repo.ProgressRepository
 import com.shanghai.primary.data.repo.QuestionRepository
+import com.shanghai.primary.data.repo.WrongQuestionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,6 +20,8 @@ class App : Application() {
         private set
     lateinit var progressRepo: ProgressRepository
         private set
+    lateinit var wrongQuestionRepo: WrongQuestionRepository
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -26,6 +29,7 @@ class App : Application() {
         db = AppDatabase.get(this)
         questionRepo = QuestionRepository(db)
         progressRepo = ProgressRepository(db)
+        wrongQuestionRepo = WrongQuestionRepository(db)
 
         appScope.launch { questionRepo.seedIfEmpty() }
     }

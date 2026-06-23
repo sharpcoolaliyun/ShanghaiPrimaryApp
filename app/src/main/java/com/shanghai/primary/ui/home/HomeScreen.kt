@@ -34,13 +34,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -60,7 +56,9 @@ data class SubjectCardConfig(
 @Composable
 fun HomeScreen(
     vm: HomeViewModel,
-    onSelectSubject: (Subject) -> Unit
+    onSelectSubject: (Subject) -> Unit,
+    onOpenWrongQuestions: () -> Unit,
+    onOpenDailyPractice: () -> Unit
 ) {
     val state by vm.state.collectAsState()
 
@@ -72,7 +70,7 @@ fun HomeScreen(
             Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(20.dp)
+                .padding(horizontal = 20.dp)
         ) {
             // 顶部欢迎卡片
             Surface(
@@ -116,7 +114,59 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
+
+            // 年级选择和错题本
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                GradeChip(
+                    grade = 1,
+                    selected = state.selectedGrade == 1,
+                    onClick = { vm.selectGrade(1) }
+                )
+                Spacer(Modifier.size(10.dp))
+                GradeChip(
+                    grade = 2,
+                    selected = state.selectedGrade == 2,
+                    onClick = { vm.selectGrade(2) }
+                )
+                Spacer(Modifier.weight(1f))
+                // 错题本入口
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { onOpenWrongQuestions() }
+                ) {
+                    Text(
+                        "📕 错题本",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontSize = 14.sp
+                    )
+                }
+                Spacer(Modifier.size(8.dp))
+                // 每日一练入口
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { onOpenDailyPractice() }
+                ) {
+                    Text(
+                        "⭐ 每日一练",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
             Text(
                 "选择一个科目开始游戏",
                 style = MaterialTheme.typography.titleLarge,
@@ -179,21 +229,35 @@ fun HomeScreen(
 }
 
 @Composable
-private fun SubjectCard(cfg: SubjectCardConfig, onClick: () -> Unit) {
-    var pressed by remember { mutableStateOf(false) }
-    val scale by remember(pressed) { mutableStateOf(if (pressed) 0.96f else 1f) }
+private fun GradeChip(
+    grade: Int,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .clickable { onClick() }
+    ) {
+        Text(
+            "${grade}年级",
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 16.sp
+        )
+    }
+}
 
+@Composable
+private fun SubjectCard(cfg: SubjectCardConfig, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(28.dp),
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-            .scale(scale)
-            .clickable(
-                onClick = onClick,
-                onPress = { pressed = true },
-                onRelease = { pressed = false }
-            )
+            .clickable(onClick = onClick)
     ) {
         Box(
             Modifier

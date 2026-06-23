@@ -33,4 +33,7 @@ interface QuestionDao {
         """
     )
     suspend fun randomByType(subject: Subject, grade: Int, gameType: String, size: Int): List<Question>
+
+    @Query("SELECT * FROM questions WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<Int>): List<Question>
 }

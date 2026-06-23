@@ -22,6 +22,9 @@ class QuestionRepository(private val db: AppDatabase) {
 
     suspend fun nextFlashCardRound(subject: Subject, grade: Int, size: Int = 10): List<Question> =
         db.questionDao().randomByType(subject, grade, GameType.FLASHCARD, size)
+
+    suspend fun getByIds(ids: List<Int>): List<Question> =
+        if (ids.isEmpty()) emptyList() else db.questionDao().getByIds(ids)
 }
 
 class ProgressRepository(private val db: AppDatabase) {

@@ -1,4 +1,4 @@
-package com.shanghai.primary.ui.game
+package com.shanghai.primary.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,27 +9,27 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-data class GameState(
+data class DailyPracticeState(
     val index: Int = 0,
-    val total: Int = 0,
+    val total: Int = 5,
     val current: Question? = null,
     val selected: Int? = null,
     val isAnswered: Boolean = false,
     val score: Int = 0,
-    val finished: Boolean = false
+    val finished: Boolean = false,
+    val bonusClaimed: Boolean = false
 )
 
-class GameViewModel(
-    private val subject: Subject,
-    private val grade: Int = 1,
-    private val roundSize: Int = 10
-) : ViewModel() {
+class DailyPracticeViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow(GameState())
-    val state: StateFlow<GameState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(DailyPracticeState())
+    val state: StateFlow<DailyPracticeState> = _state.asStateFlow()
 
     private var questions: List<Question> = emptyList()
+    private var todayKey: String = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
 
     init {
         loadQuestions()
@@ -37,9 +37,16 @@ class GameViewModel(
 
     private fun loadQuestions() {
         viewModelScope.launch {
-            questions = App.get().questionRepo.nextRound(subject, grade, roundSize)
+            // 从所有科目随机抽5题
+            val allSubjects = Subject.values()
+            val mixed = mutableListOf<Question>()
+            allSubjects.forEach { subject ->
+                val qs = App.get().questionRepo.nextRound(subject, 1, 2)
+                mixed.addAll(qs)
+            }
+            questions = if (mixed.size >= 5) mixed.shuffled().take(5) else mixed
             val first = questions.firstOrNull()
-            _state.value = GameState(
+            _state.value = DailyPracticeState(
                 index = 0,
                 total = questions.size,
                 current = first
@@ -53,12 +60,7 @@ class GameViewModel(
         val correct = selectedOriginalIndex == cur.current.answerIndex
         val newScore = if (correct) cur.score + 1 else cur.score
         viewModelScope.launch {
-            App.get().progressRepo.bump(subject, correct)
-            if (!correct && cur.current != null) {
-                App.get().wrongQuestionRepo.recordWrong(
-                    cur.current.id, subject, grade
-                )
-            }
+            App.get().progressRepo.bump(cur.current.subject, correct)
         }
         _state.value = cur.copy(
             selected = selectedOriginalIndex,
@@ -73,7 +75,7 @@ class GameViewModel(
         if (nextIdx >= questions.size) {
             _state.value = cur.copy(finished = true)
         } else {
-            _state.value = GameState(
+            _state.value = DailyPracticeState(
                 index = nextIdx,
                 total = questions.size,
                 current = questions[nextIdx],
@@ -82,7 +84,24 @@ class GameViewModel(
         }
     }
 
-    fun playAgain() {
-        loadQuestions()
+    fun claimBonus(): Int {
+        val cur = _state.value
+        if (cur.bonusClaimed || !cur.finished) return 0
+        val bonus = 3 // 每日一练完成奖励3颗星
+        viewModelScope.launch {
+            val subjects = Subject.values()
+            subjects.forEach { subject ->
+                repeat(bonus) {
+                    App.get().progressRepo.bump(subject, true)
+                }
+            }
+        }
+        _state.value = cur.copy(bonusClaimed = true)
+        return bonus
+    }
+
+    fun isTodayCompleted(): Boolean {
+        // 用 SharedPreferences 记录今天是否已完成
+        return false // 简化版，暂不持久化
     }
 }

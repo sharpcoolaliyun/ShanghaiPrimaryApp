@@ -1,5 +1,6 @@
 package com.shanghai.primary.data.seed
 
+import com.shanghai.primary.data.model.GameType
 import com.shanghai.primary.data.model.Question
 import com.shanghai.primary.data.model.Subject
 
@@ -19,7 +20,7 @@ object SeedQuestions {
     fun all(): List<Question> = chinese() + math() + english() + general() +
             flashCardChinese() + flashCardEnglish() +
             dragMatchChinese() + dragMatchEnglish() + dragMatchGeneral() +
-            wordScrambleEnglish()
+            wordScrambleEnglish() + expandedQuestions()
 
     private fun chinese(): List<Question> = listOf(
         // 一年级 - 识字
@@ -1161,5 +1162,135 @@ object SeedQuestions {
             scrambledWord = "pyal",
             correctWord = "play",
             imageEmoji = "⚽")
+    )
+    // =========== 扩充题库（第二批）============
+    fun expandedQuestions(): List<Question> = listOf(
+        // 语文-一年级-拼音
+        Question(subject = Subject.CHINESE, grade = 1,
+            prompt = "「zi」是哪个字的拼音？",
+            optionA = "子", optionB = "字", optionC = "自", optionD = "以上都可以",
+            answerIndex = 3, imageEmoji = "🔤"),
+        Question(subject = Subject.CHINESE, grade = 1,
+            prompt = "下列哪个是三拼音节？",
+            optionA = "ka", optionB = "gua", optionC = "ma", optionD = "he",
+            answerIndex = 1, imageEmoji = "🔤"),
+        Question(subject = Subject.CHINESE, grade = 1,
+            prompt = "「niao」的声调标在哪个字母上？",
+            optionA = "n", optionB = "i", optionC = "a", optionD = "o",
+            answerIndex = 2, imageEmoji = "🐦"),
+
+        // 语文-二年级-古诗
+        Question(subject = Subject.CHINESE, grade = 2,
+            prompt = "「迟日江山丽」的下一句是？",
+            optionA = "春风花草香", optionB = "泥融飞燕子", optionC = "沙暖睡鸳鸯", optionD = "一岁一枯荣",
+            answerIndex = 0, imageEmoji = "🌸"),
+        Question(subject = Subject.CHINESE, grade = 2,
+            prompt = "《春晓》的作者是？",
+            optionA = "李白", optionB = "杜甫", optionC = "孟浩然", optionD = "王维",
+            answerIndex = 2, imageEmoji = "🌿"),
+        Question(subject = Subject.CHINESE, grade = 2,
+            prompt = "「野火烧不尽」的下一句是？",
+            optionA = "春风吹又生", optionB = "一岁一枯荣", optionC = "天涯若比邻", optionD = "更上一层楼",
+            answerIndex = 0, imageEmoji = "🔥"),
+
+        // 数学-一年级-进退位
+        Question(subject = Subject.MATH, grade = 1,
+            prompt = "13 - 5 = ?",
+            optionA = "7", optionB = "8", optionC = "9", optionD = "6",
+            answerIndex = 1, imageEmoji = "➖"),
+        Question(subject = Subject.MATH, grade = 1,
+            prompt = "7 + 8 = ?",
+            optionA = "14", optionB = "15", optionC = "16", optionD = "13",
+            answerIndex = 1, imageEmoji = "➕"),
+        Question(subject = Subject.MATH, grade = 1,
+            prompt = "比9大比11小的数是？",
+            optionA = "8", optionB = "9", optionC = "10", optionD = "12",
+            answerIndex = 2, imageEmoji = "🔢"),
+
+        // 数学-二年级-乘除法
+        Question(subject = Subject.MATH, grade = 2,
+            prompt = "5 × 6 = ?",
+            optionA = "11", optionB = "30", optionC = "25", optionD = "35",
+            answerIndex = 1, imageEmoji = "✖️"),
+        Question(subject = Subject.MATH, grade = 2,
+            prompt = "24 ÷ 6 = ?",
+            optionA = "3", optionB = "4", optionC = "5", optionD = "6",
+            answerIndex = 1, imageEmoji = "➗"),
+        Question(subject = Subject.MATH, grade = 2,
+            prompt = "下面哪个是钝角？",
+            optionA = "30°", optionB = "90°", optionC = "120°", optionD = "180°",
+            answerIndex = 2, imageEmoji = "📐"),
+
+        // 英语-一年级
+        Question(subject = Subject.ENGLISH, grade = 1,
+            prompt = "「眼睛」的英语是？",
+            optionA = "eye", optionB = "ear", optionC = "nose", optionD = "mouth",
+            answerIndex = 0, imageEmoji = "👁️"),
+        Question(subject = Subject.ENGLISH, grade = 1,
+            prompt = "「牛奶」的英语是？",
+            optionA = "water", optionB = "milk", optionC = "juice", optionD = "tea",
+            answerIndex = 1, imageEmoji = "🥛"),
+        Question(subject = Subject.ENGLISH, grade = 1,
+            prompt = "「谢谢」的英语是？",
+            optionA = "hello", optionB = "sorry", optionC = "thank you", optionD = "goodbye",
+            answerIndex = 2, imageEmoji = "🙏"),
+
+        // 英语-二年级
+        Question(subject = Subject.ENGLISH, grade = 2,
+            prompt = "「蓝色」的英语是？",
+            optionA = "red", optionB = "blue", optionC = "green", optionD = "yellow",
+            answerIndex = 1, imageEmoji = "🔵"),
+        Question(subject = Subject.ENGLISH, grade = 2,
+            prompt = "「家庭」的英语是？",
+            optionA = "family", optionB = "friend", optionC = "school", optionD = "home",
+            answerIndex = 0, imageEmoji = "👨👩👧"),
+        Question(subject = Subject.ENGLISH, grade = 2,
+            prompt = "「游泳」的英语是？",
+            optionA = "run", optionB = "jump", optionC = "swim", optionD = "fly",
+            answerIndex = 2, imageEmoji = "🏊"),
+
+        // 常识
+        Question(subject = Subject.GENERAL, grade = 1,
+            prompt = "老虎生活在哪里？",
+            optionA = "森林", optionB = "沙漠", optionC = "南极", optionD = "海洋",
+            answerIndex = 0, imageEmoji = "🐯"),
+        Question(subject = Subject.GENERAL, grade = 1,
+            prompt = "下面哪个是蔬菜？",
+            optionA = "苹果", optionB = "香蕉", optionC = "胡萝卜", optionD = "西瓜",
+            answerIndex = 2, imageEmoji = "🥕"),
+        Question(subject = Subject.GENERAL, grade = 2,
+            prompt = "鲸鱼是什么动物？",
+            optionA = "鱼", optionB = "哺乳动物", optionC = "两栖动物", optionD = "爬行动物",
+            answerIndex = 1, imageEmoji = "🐋"),
+        Question(subject = Subject.GENERAL, grade = 2,
+            prompt = "下面哪个节日是中国的？",
+            optionA = "圣诞节", optionB = "春节", optionC = "万圣节", optionD = "感恩节",
+            answerIndex = 1, imageEmoji = "🧧"),
+
+        // 闪卡-语文
+        Question(subject = Subject.CHINESE, grade = 1, gameType = GameType.FLASHCARD,
+            prompt = "请认识这个字", optionA = "风", imageEmoji = "🌬️"),
+        Question(subject = Subject.CHINESE, grade = 1, gameType = GameType.FLASHCARD,
+            prompt = "请认识这个字", optionA = "雨", imageEmoji = "🌧️"),
+        Question(subject = Subject.CHINESE, grade = 2, gameType = GameType.FLASHCARD,
+            prompt = "请认识这个字", optionA = "雪", imageEmoji = "❄️"),
+
+        // 闪卡-英语
+        Question(subject = Subject.ENGLISH, grade = 1, gameType = GameType.FLASHCARD,
+            prompt = "请认识这个单词", optionA = "dog", imageEmoji = "🐶"),
+        Question(subject = Subject.ENGLISH, grade = 1, gameType = GameType.FLASHCARD,
+            prompt = "请认识这个单词", optionA = "fish", imageEmoji = "🐟"),
+
+        // 拖拽配对-反义词
+        Question(subject = Subject.CHINESE, grade = 1, gameType = GameType.DRAG_MATCH,
+            prompt = "将反义词配对", pairLeft = "多", pairRight = "少", imageEmoji = "🔢"),
+        Question(subject = Subject.CHINESE, grade = 2, gameType = GameType.DRAG_MATCH,
+            prompt = "将反义词配对", pairLeft = "冷", pairRight = "热", imageEmoji = "🌡️"),
+
+        // 拼字-英语
+        Question(subject = Subject.ENGLISH, grade = 1, gameType = GameType.WORD_SCRAMBLE,
+            prompt = "请拼出这个颜色", scrambledWord = "rnege", correctWord = "green", imageEmoji = "🟢"),
+        Question(subject = Subject.ENGLISH, grade = 2, gameType = GameType.WORD_SCRAMBLE,
+            prompt = "请拼出这个动物", scrambledWord = "ibrd", correctWord = "bird", imageEmoji = "🐦")
     )
 }
